@@ -1,0 +1,3 @@
+include src/asha/download_stockfish.sh
+include hatch_build.py
+recursive-include src/asha/stockfish_bin *
