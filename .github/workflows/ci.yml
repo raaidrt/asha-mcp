@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies (Cairo and related)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libpango1.0-dev \
+            libgdk-pixbuf2.0-0 \
+            libffi-dev \
+            shared-mime-info
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -y
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Sync project dependencies (including dev)
+        run: uv sync --group dev
+
+      - name: Build the project
+        run: uv build .
+
+      - name: Run tests
+        run: uv run --no-sync pytest -q
