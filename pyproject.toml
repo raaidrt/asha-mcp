@@ -8,9 +8,10 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "cairosvg>=2.8.2",
     "chess>=1.11.2",
     "mcp[cli]>=1.12.3",
-    "pillow>=11.3.0",
+    "pillow>=8.4.0",
     "ruff>=0.12.7",
     "stockfish>=3.28.0",
 ]
@@ -39,6 +40,12 @@ line-length = 88
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+]
 
 [tool.hatch.build.hooks.custom]
 # Optional configuration - these are the defaults

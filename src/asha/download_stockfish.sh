@@ -70,7 +70,7 @@ file_name=$(echo "$output" | cut -d ' ' -f2)
 
 # Download the file with retry mechanism
 echo "Downloading '$base_url/$file_name' to $(pwd)/$DIRECTORY"
-if ! curl -fJLO --retry 5 --retry-delay 5 --retry-all-errors "$base_url/$file_name" --create-dirs --output-dir "$DIRECTORY"; then
+if ! curl -# -fJLO --retry 5 --retry-delay 5 --retry-all-errors "$base_url/$file_name" --create-dirs --output-dir "$DIRECTORY"; then
   echo "Download failed after 5 attempts.\n"
   exit 1
 fi
