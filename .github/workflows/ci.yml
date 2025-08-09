@@ -27,7 +27,10 @@ jobs:
             libpango1.0-dev \
             libgdk-pixbuf2.0-0 \
             libffi-dev \
-            shared-mime-info
+            shared-mime-info \
+            libjpeg-dev \
+            zlib1g-dev \
+            python3-dev
 
       - name: Install uv
         run: |
