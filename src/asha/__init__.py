@@ -26,7 +26,7 @@ class Eval:
         self.value = value
         self.is_white = is_white
 
-    def __str__(self):
+    def __repr__(self):
         if self.kind == 'cp':
             return f'CentipawnLoss[{self.value}]'
         return f'MateIn[{self.value}]'
@@ -44,7 +44,7 @@ class Eval:
 
 
 @mcp.tool()
-async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) -> list[dict[str, Any]]:
+async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) -> list[dict[str, str]]:
     board = chess.Board(board_fen)
     next_moves = board.generate_legal_moves()
     result: list[dict[str, Any]] = []
@@ -55,13 +55,12 @@ async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) ->
         result.append({
             'eval': Eval(engine.get_evaluation()['type'], is_white, engine.get_evaluation()['value']),
             'move': str(move),
-            'board': board.fen(),
         })
         board.pop()
 
     sorted_result = sorted(result, key=lambda x: x['eval'])
     cutoff_value = cutoff if cutoff is not None else len(sorted_result)
-    return sorted_result[:cutoff_value]
+    return list({"move": x['move'], "eval": str(x['eval'])} for x in sorted_result[:cutoff_value])
 
 @mcp.tool()
 async def get_next_board_state(board_fen: str, move_san: str) -> str:

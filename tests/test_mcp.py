@@ -1,6 +1,5 @@
 import sys
 import types
-import ast
 from pathlib import Path
 
 from PIL import Image as PILImage
@@ -87,7 +86,7 @@ async def test_get_evaluation_uses_engine(asha_module):
 
 @pytest.mark.asyncio
 async def test_eval_next_moves_returns_list_of_dicts(asha_module):
-    # The tool now returns a Python list of dicts with keys: 'eval', 'move', 'board'
+    # The tool returns a Python list of dicts with keys: 'eval', 'move'
     start_fen = asha_module.chess.Board().fen()
 
     result_list = await asha_module.eval_next_moves(start_fen, True, None)
@@ -99,7 +98,7 @@ async def test_eval_next_moves_returns_list_of_dicts(asha_module):
     assert isinstance(result_list, list)
     assert len(result_list) == len(legal_moves)
     assert all(isinstance(item, dict) for item in result_list)
-    assert all({'move', 'board', 'eval'}.issubset(item.keys()) for item in result_list)
+    assert all({'move', 'eval'}.issubset(item.keys()) for item in result_list)
 
     # All evaluations should stringify to the stable fake "CentipawnLoss[0]"
     assert {str(item['eval']) for item in result_list} == {'CentipawnLoss[0]'}
