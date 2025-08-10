@@ -1,5 +1,6 @@
 import sys
 import types
+from io import BytesIO
 from pathlib import Path
 
 from PIL import Image as PILImage
@@ -110,10 +111,10 @@ async def test_eval_next_moves_returns_list_of_dicts(asha_module):
 
 
 @pytest.mark.asyncio
-async def test_board_image_filepath(asha_module):
+async def test_board_image(asha_module):
     fen = asha_module.chess.Board().fen()
-    img_filepath = await asha_module.board_image_filepath(fen)
-    assert Path(img_filepath).exists()
-    img = PILImage.open(img_filepath)
-    assert img.size == (256, 256)
-    assert img.format == 'PNG'
+    img = await asha_module.board_image(fen)
+    assert img.data is not None
+    assert img._format == 'png'
+    bytes = PILImage.open(BytesIO(img.data)).tobytes()  
+    assert len(bytes) == 4 * 256 ** 2

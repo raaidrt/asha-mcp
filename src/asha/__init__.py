@@ -1,8 +1,11 @@
 from typing import Any
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP, Image 
+
+from PIL import Image as PILImage
 
 import chess
 import chess.svg
+from io import BytesIO
 from pathlib import Path
 
 import stockfish
@@ -81,25 +84,11 @@ async def start_board() -> str:
     return chess.Board().fen()
 
 
-@mcp.tool()
-async def board_image_filepath(board_fen: str) -> str:
+@mcp.tool() 
+async def board_image(board_fen: str) -> Image: 
     svg_source = chess.svg.board(chess.Board(board_fen))
-    epoch_time = str(time.time())
-    epoch_time = epoch_time.replace('.', '_')
-    filename = f'/tmp/_asha_stockfish_{epoch_time}_{os.getpid()}'
-
-    with open(f'{filename}.svg', 'w') as f:
-        f.write(svg_source)
-
-    svg2png(
-        url=f'{filename}.svg',
-        output_height=256,
-        output_width=256,
-        write_to=f'{filename}.png',
-    )
-
-    return f'{filename}.png'
-
+    output_bytes = svg2png(bytestring=svg_source.encode('utf-8'), output_height=256, output_width=256)
+    return Image(data=output_bytes, format='png')
 
 def main():
     mcp.run(transport='stdio')
