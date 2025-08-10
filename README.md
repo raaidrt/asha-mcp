@@ -44,7 +44,7 @@ uv build .
 ```
 
 ## Integrate with Claude Code
-Add the following line to Claude `claude_desktop_config.json` (details [here](https://modelcontextprotocol.io/quickstart/user)). 
+Add the following line to Claude `claude_desktop_config.json` (details [here](https://modelcontextprotocol.io/quickstart/user)), replacing the path with the appropriate path to the local clone of this repository.
 ```json
 {
   "mcpServers": {
