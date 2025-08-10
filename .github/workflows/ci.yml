@@ -24,8 +24,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libcairo2-dev \
-            libjpeg-dev \ 
-            uv
+            libjpeg-dev
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Sync project dependencies (including dev)
         run: uv sync --group dev
