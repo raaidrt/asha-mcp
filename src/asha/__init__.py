@@ -1,19 +1,13 @@
 from typing import Any
-from mcp.server.fastmcp import FastMCP, Image 
-
-from PIL import Image as PILImage
+from mcp.server.fastmcp import FastMCP, Image
 
 import chess
 import chess.svg
-from io import BytesIO
 from pathlib import Path
 
 import stockfish
 
 from cairosvg import svg2png
-
-import time
-import os
 
 stockfish_path = Path(__file__).parent / 'stockfish_bin'
 stockfish_binary = next(stockfish_path.iterdir())
@@ -37,17 +31,29 @@ class Eval:
     def __lt__(self, other: 'Eval') -> bool:
         match (self.kind, other.kind):
             case ('cp', 'cp'):
-                return self.value > other.value if self.is_white else self.value < other.value
+                return (
+                    self.value > other.value
+                    if self.is_white
+                    else self.value < other.value
+                )
             case ('cp', 'mate'):
                 return True
             case ('mate', 'cp'):
                 return False
             case ('mate', 'mate'):
-                return self.value < other.value if self.is_white else self.value > other.value
+                return (
+                    self.value < other.value
+                    if self.is_white
+                    else self.value > other.value
+                )
+            case _:
+                raise Exception('Invalid Case')
 
 
 @mcp.tool()
-async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) -> list[dict[str, str]]:
+async def eval_next_moves(
+    board_fen: str, is_white: bool, cutoff: int | None
+) -> list[dict[str, str]]:
     board = chess.Board(board_fen)
     next_moves = board.generate_legal_moves()
     result: list[dict[str, Any]] = []
@@ -55,15 +61,25 @@ async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) ->
         board.push(move)
         engine.set_fen_position(board.fen())
         engine.set_depth(10)
-        result.append({
-            'eval': Eval(engine.get_evaluation()['type'], is_white, engine.get_evaluation()['value']),
-            'move': str(move),
-        })
+        result.append(
+            {
+                'eval': Eval(
+                    engine.get_evaluation()['type'],
+                    is_white,
+                    engine.get_evaluation()['value'],
+                ),
+                'move': str(move),
+            }
+        )
         board.pop()
 
     sorted_result = sorted(result, key=lambda x: x['eval'])
     cutoff_value = cutoff if cutoff is not None else len(sorted_result)
-    return list({"move": x['move'], "eval": str(x['eval'])} for x in sorted_result[:cutoff_value])
+    return list(
+        {'move': x['move'], 'eval': str(x['eval'])}
+        for x in sorted_result[:cutoff_value]
+    )
+
 
 @mcp.tool()
 async def get_next_board_state(board_fen: str, move_san: str) -> str:
@@ -76,7 +92,13 @@ async def get_next_board_state(board_fen: str, move_san: str) -> str:
 async def get_evaluation(board_fen: str) -> str:
     board = chess.Board(board_fen)
     engine.set_fen_position(board.fen())
-    return str(Eval(engine.get_evaluation()['type'], board.turn, engine.get_evaluation()['value']))
+    return str(
+        Eval(
+            engine.get_evaluation()['type'],
+            board.turn,
+            engine.get_evaluation()['value'],
+        )
+    )
 
 
 @mcp.tool()
@@ -84,11 +106,14 @@ async def start_board() -> str:
     return chess.Board().fen()
 
 
-@mcp.tool() 
-async def board_image(board_fen: str) -> Image: 
+@mcp.tool()
+async def board_image(board_fen: str) -> Image:
     svg_source = chess.svg.board(chess.Board(board_fen))
-    output_bytes = svg2png(bytestring=svg_source.encode('utf-8'), output_height=256, output_width=256)
+    output_bytes = svg2png(
+        bytestring=svg_source.encode('utf-8'), output_height=256, output_width=256
+    )
     return Image(data=output_bytes, format='png')
+
 
 def main():
     mcp.run(transport='stdio')
