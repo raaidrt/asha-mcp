@@ -44,21 +44,24 @@ class Eval:
 
 
 @mcp.tool()
-async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) -> str:
+async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) -> list[dict[str, Any]]:
     board = chess.Board(board_fen)
     next_moves = board.generate_legal_moves()
-    result: list[dict[str, str]] = []
+    result: list[dict[str, Any]] = []
     for move in next_moves:
         board.push(move)
         engine.set_fen_position(board.fen())
         engine.set_depth(10)
-        result.append({ "eval": Eval(engine.get_evaluation()['type'], is_white, engine.get_evaluation()['value']), "move": str(move), "board": board.fen()})
+        result.append({
+            'eval': Eval(engine.get_evaluation()['type'], is_white, engine.get_evaluation()['value']),
+            'move': str(move),
+            'board': board.fen(),
+        })
         board.pop()
 
-    sorted_result = sorted(result, key=lambda x: x["eval"])
-    sorted_result_str = [str(x) for x in sorted_result]
-    cutoff_value = cutoff if cutoff is not None else len(sorted_result_str)
-    return str(list(sorted_result_str)[:cutoff_value])
+    sorted_result = sorted(result, key=lambda x: x['eval'])
+    cutoff_value = cutoff if cutoff is not None else len(sorted_result)
+    return sorted_result[:cutoff_value]
 
 @mcp.tool()
 async def get_next_board_state(board_fen: str, move_san: str) -> str:

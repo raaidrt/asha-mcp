@@ -86,12 +86,11 @@ async def test_get_evaluation_uses_engine(asha_module):
 
 
 @pytest.mark.asyncio
-async def test_eval_next_moves_returns_sorted_list_of_strings(asha_module):
-    # The tool now returns a stringified Python list of stringified dicts
+async def test_eval_next_moves_returns_list_of_dicts(asha_module):
+    # The tool now returns a Python list of dicts with keys: 'eval', 'move', 'board'
     start_fen = asha_module.chess.Board().fen()
 
-    s = await asha_module.eval_next_moves(start_fen, True, None)
-    result_list = ast.literal_eval(s)
+    result_list = await asha_module.eval_next_moves(start_fen, True, None)
 
     # Count legal moves from start position
     board = asha_module.chess.Board(start_fen)
@@ -99,13 +98,14 @@ async def test_eval_next_moves_returns_sorted_list_of_strings(asha_module):
 
     assert isinstance(result_list, list)
     assert len(result_list) == len(legal_moves)
-    assert all(isinstance(item, str) for item in result_list)
-    # Each entry should look like a dict when printed, containing these keys
-    assert all("'move':" in item and "'board':" in item and "'eval':" in item for item in result_list)
+    assert all(isinstance(item, dict) for item in result_list)
+    assert all({'move', 'board', 'eval'}.issubset(item.keys()) for item in result_list)
+
+    # All evaluations should stringify to the stable fake "CentipawnLoss[0]"
+    assert {str(item['eval']) for item in result_list} == {'CentipawnLoss[0]'}
 
     # Cutoff behavior should limit the number of entries
-    s_cutoff = await asha_module.eval_next_moves(start_fen, True, 5)
-    result_cutoff = ast.literal_eval(s_cutoff)
+    result_cutoff = await asha_module.eval_next_moves(start_fen, True, 5)
     assert isinstance(result_cutoff, list)
     assert len(result_cutoff) == 5
 
