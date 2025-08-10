@@ -82,23 +82,32 @@ async def test_get_evaluation_uses_engine(asha_module):
     # Our fake engine always returns cp 0
     fen = asha_module.chess.Board().fen()
     result = await asha_module.get_evaluation(fen)
-    assert result == 'CP[0]'
+    assert result == 'CentipawnLoss[0]'
 
 
 @pytest.mark.asyncio
-async def test_eval_next_moves_returns_eval_map(asha_module):
-    # Parse the stringified dict and ensure it contains entries for all legal moves
+async def test_eval_next_moves_returns_sorted_list_of_strings(asha_module):
+    # The tool now returns a stringified Python list of stringified dicts
     start_fen = asha_module.chess.Board().fen()
+
     s = await asha_module.eval_next_moves(start_fen, True, None)
-    result = ast.literal_eval(s)
+    result_list = ast.literal_eval(s)
 
     # Count legal moves from start position
     board = asha_module.chess.Board(start_fen)
     legal_moves = list(board.generate_legal_moves())
-    assert isinstance(result, dict)
-    assert len(result) == len(legal_moves)
-    # All evaluations should be the stable fake "CP[0]"
-    assert set(result.values()) == {'CP[0]'}
+
+    assert isinstance(result_list, list)
+    assert len(result_list) == len(legal_moves)
+    assert all(isinstance(item, str) for item in result_list)
+    # Each entry should look like a dict when printed, containing these keys
+    assert all("'move':" in item and "'board':" in item and "'eval':" in item for item in result_list)
+
+    # Cutoff behavior should limit the number of entries
+    s_cutoff = await asha_module.eval_next_moves(start_fen, True, 5)
+    result_cutoff = ast.literal_eval(s_cutoff)
+    assert isinstance(result_cutoff, list)
+    assert len(result_cutoff) == 5
 
 
 @pytest.mark.asyncio

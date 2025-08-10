@@ -53,8 +53,8 @@ def asha_module():
 
 def test_eval_str_formatting(asha_module):
     Eval = asha_module.Eval
-    assert str(Eval('cp', True, 0)) == 'CP[0]'
-    assert str(Eval('mate', False, 3)) == 'Mate[3]'
+    assert str(Eval('cp', True, 0)) == 'CentipawnLoss[0]'
+    assert str(Eval('mate', False, 3)) == 'MateIn[3]'
 
 
 @pytest.mark.parametrize(

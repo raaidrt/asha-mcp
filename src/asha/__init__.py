@@ -1,5 +1,5 @@
 from typing import Any
-from mcp.server.fastmcp import FastMCP, Image
+from mcp.server.fastmcp import FastMCP
 
 import chess
 import chess.svg
@@ -28,8 +28,8 @@ class Eval:
 
     def __str__(self):
         if self.kind == 'cp':
-            return f'CP[{self.value}]'
-        return f'Mate[{self.value}]'
+            return f'CentipawnLoss[{self.value}]'
+        return f'MateIn[{self.value}]'
 
     def __lt__(self, other: 'Eval') -> bool:
         match (self.kind, other.kind):
@@ -47,18 +47,18 @@ class Eval:
 async def eval_next_moves(board_fen: str, is_white: bool, cutoff: int | None) -> str:
     board = chess.Board(board_fen)
     next_moves = board.generate_legal_moves()
-    result: list[tuple[Eval, str]] = []
+    result: list[dict[str, str]] = []
     for move in next_moves:
         board.push(move)
         engine.set_fen_position(board.fen())
         engine.set_depth(10)
-        result.append((Eval(engine.get_evaluation()['type'], is_white, engine.get_evaluation()['value']), board.fen()))
+        result.append({ "eval": Eval(engine.get_evaluation()['type'], is_white, engine.get_evaluation()['value']), "move": str(move), "board": board.fen()})
         board.pop()
 
-    sorted_result = sorted(result, key=lambda x: x[0])
-    cutoff_value = cutoff if cutoff is not None else len(sorted_result)
-    result_dict = {fen: str(eval) for eval, fen in sorted_result[:cutoff_value]}
-    return str(result_dict)
+    sorted_result = sorted(result, key=lambda x: x["eval"])
+    sorted_result_str = [str(x) for x in sorted_result]
+    cutoff_value = cutoff if cutoff is not None else len(sorted_result_str)
+    return str(list(sorted_result_str)[:cutoff_value])
 
 @mcp.tool()
 async def get_next_board_state(board_fen: str, move_san: str) -> str:
