@@ -107,8 +107,20 @@ async def start_board() -> str:
 
 
 @mcp.tool()
-async def board_image(board_fen: str) -> Image:
-    svg_source = chess.svg.board(chess.Board(board_fen))
+async def board_image(
+    board_fen: str, moves_san: list[tuple[str, str]] | None = None
+) -> Image:
+    board = chess.Board(board_fen)
+    moves = (
+        []
+        if moves_san is None
+        else [(board.parse_san(move), color) for move, color in moves_san]
+    )
+    arrows = [
+        chess.svg.Arrow(move.from_square, move.to_square, color=color)
+        for move, color in moves
+    ]
+    svg_source = chess.svg.board(board, arrows=arrows)
     output_bytes = svg2png(
         bytestring=svg_source.encode('utf-8'), output_height=256, output_width=256
     )
