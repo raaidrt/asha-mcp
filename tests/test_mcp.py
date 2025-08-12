@@ -117,4 +117,4 @@ async def test_board_image(asha_module):
     assert img.data is not None
     assert img._format == 'png'
     bytes = PILImage.open(BytesIO(img.data)).tobytes()  
-    assert len(bytes) == 4 * 256 ** 2
+    assert len(bytes) == 4 * 1024 ** 2

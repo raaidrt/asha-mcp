@@ -122,7 +122,7 @@ async def board_image(
     ]
     svg_source = chess.svg.board(board, arrows=arrows)
     output_bytes = svg2png(
-        bytestring=svg_source.encode('utf-8'), output_height=256, output_width=256
+        bytestring=svg_source.encode('utf-8'), output_height=1024, output_width=1024
     )
     return Image(data=output_bytes, format='png')
 
